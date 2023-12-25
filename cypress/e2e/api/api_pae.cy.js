@@ -81,7 +81,7 @@ describe("Testes de funções do aplicativo", () => {
       });
    });
 
-   it.only("ver dados da minha conta", () => {
+   it("ver dados da minha conta", () => {
       cy.request({
          method: "GET",
          url: `https://amo-backend.onrender.com/usuario/eu/`,
@@ -107,6 +107,50 @@ describe("Testes de funções do aplicativo", () => {
          });
          expect(perfil.nome_completo).to.equal("Felipe Gomes ");
          expect(perfil.cargos[0]).to.equal("aluno");
+      });
+   });
+
+   it.only("verificar nomes - Teste de Carga Simples", () => {
+      // Número de solicitações concorrentes
+      const numberOfRequests = 10;
+
+      // Array de promessas para aguardar a conclusão das solicitações
+      const requests = [];
+
+      // Variáveis para medir o tempo médio de resposta
+      let totalTime = 0;
+
+      for (let i = 0; i < numberOfRequests; i++) {
+         requests.push(
+            cy
+               .request({
+                  method: "GET",
+                  url: "https://amo-backend.onrender.com/usuario/eu/",
+                  headers: {
+                     Authorization:
+                        "Token " + "d2bd5d88544b198d96b90f3c31588743d8199eaf",
+                  },
+                  "Content-Type": "application/json",
+               })
+               .then((response) => {
+                  const { perfil } = response.body;
+
+                  // Verifica se o nome é igual
+                  expect(perfil.nome_completo).to.equal("Felipe Gomes ");
+
+                  // Mede o tempo de resposta para cada solicitação
+                  const requestTime = response.duration;
+                  totalTime += requestTime;
+               })
+         );
+      }
+
+      // Aguarda a conclusão de todas as solicitações e calcula o tempo médio
+      return Cypress.Promise.all(requests).then(() => {
+         const averageTime = totalTime / numberOfRequests;
+
+         cy.log(`Tempo total: ${totalTime}ms`);
+         cy.log(`Tempo médio por solicitação: ${averageTime}ms`);
       });
    });
 });
