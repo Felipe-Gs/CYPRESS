@@ -50,7 +50,7 @@ describe("Testes de funções do aplicativo", () => {
       });
    });
 
-   it.only("Alteração de senha - Sucesso ou Falha", () => {
+   it("Alteração de senha - Sucesso ou Falha", () => {
       cy.request({
          method: "POST",
          url: `https://amo-backend.onrender.com/usuario/eu/mudar/`,
@@ -78,6 +78,35 @@ describe("Testes de funções do aplicativo", () => {
             const { erro } = response.body;
             expect(erro).to.equal("senhas não coincidem");
          }
+      });
+   });
+
+   it.only("ver dados da minha conta", () => {
+      cy.request({
+         method: "GET",
+         url: `https://amo-backend.onrender.com/usuario/eu/`,
+
+         headers: {
+            Authorization:
+               "Token " + "d2bd5d88544b198d96b90f3c31588743d8199eaf",
+         },
+         "Content-Type": "application/json",
+      }).then((response) => {
+         const { perfil } = response.body;
+
+         expect(response.body).to.have.property("perfil");
+
+         expect(perfil).to.deep.equal({
+            id: 30,
+            foto: "https://res.cloudinary.com/dlvmqmqcn/image/upload/v1/imagens/F_gomes568884foto_zufwut",
+            nome_completo: "Felipe Gomes ",
+            nome_exibicao: "F gomes",
+            curso: "Engenharia de Software",
+            entrada: "2020.2",
+            cargos: ["aluno"],
+         });
+         expect(perfil.nome_completo).to.equal("Felipe Gomes ");
+         expect(perfil.cargos[0]).to.equal("aluno");
       });
    });
 });
