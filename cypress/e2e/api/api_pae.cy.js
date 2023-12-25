@@ -1,7 +1,9 @@
 // https://amo-backend.onrender.com/usuario/eu/mudar/
 
 /// <reference types="Cypress"/>
+//Testes para troca de senha do usuario
 describe("Testes de funções do aplicativo", () => {
+   //testando funcao de senha incorreta
    it("Senha atual incorreta", () => {
       cy.request({
          method: "POST",
