@@ -110,7 +110,7 @@ describe("Testes de funções do aplicativo", () => {
       });
    });
 
-   it.only("verificar nomes - Teste de Carga Simples", () => {
+   it("verificar nomes - Teste de Carga Simples", () => {
       // Número de solicitações concorrentes
       const numberOfRequests = 10;
 
@@ -151,6 +151,134 @@ describe("Testes de funções do aplicativo", () => {
 
          cy.log(`Tempo total: ${totalTime}ms`);
          cy.log(`Tempo médio por solicitação: ${averageTime}ms`);
+      });
+   });
+
+   it("cadastrar usuario", () => {
+      cy.request({
+         method: "POST",
+         url: `https://amo-backend.onrender.com/registrar/`,
+
+         headers: {
+            "Content-Type": "application/json",
+         },
+
+         body: {
+            email: "123456@alu.ufc.br",
+            password: "12345676g",
+         },
+         failOnStatusCode: false,
+      }).then((response) => {
+         if (
+            response.body &&
+            response.body.error &&
+            response.body.error.message
+         ) {
+            const { error } = response.body;
+            expect(error.message).to.equal(
+               "Já existe um cadastro utilizando este endereço de e-mail."
+            );
+         }
+      });
+   });
+
+   it("senha curta", () => {
+      cy.request({
+         method: "POST",
+         url: `https://amo-backend.onrender.com/registrar/`,
+
+         headers: {
+            "Content-Type": "application/json",
+         },
+
+         body: {
+            email: "123456@alu.ufc.br",
+            password: "12345",
+         },
+         failOnStatusCode: false,
+      }).then((response) => {
+         if (
+            response.body &&
+            response.body.error &&
+            response.body.error.message &&
+            response.body.error.message.password
+         ) {
+            const { password } = response.body.error.message;
+            // Verifique se a mensagem de erro contém as informações esperadas
+            expect(password).to.deep.equal([
+               "Senha deve ter pelo menos 8 caracteres.",
+               "Senha deve conter pelo menos uma letra.",
+            ]);
+         }
+      });
+   });
+
+   it("senha com apenas numeros", () => {
+      cy.request({
+         method: "POST",
+         url: `https://amo-backend.onrender.com/registrar/`,
+
+         headers: {
+            "Content-Type": "application/json",
+         },
+
+         body: {
+            email: "123456@alu.ufc.br",
+            password: "12345564",
+         },
+         failOnStatusCode: false,
+      }).then((response) => {
+         const { error } = response.body;
+         expect(error.message.password[0]).to.equal(
+            "Senha deve conter pelo menos uma letra."
+         );
+      });
+   });
+
+   it("cadastro de email ja usado", () => {
+      cy.request({
+         method: "POST",
+         url: `https://amo-backend.onrender.com/registrar/`,
+
+         headers: {
+            "Content-Type": "application/json",
+         },
+
+         body: {
+            email: "123456@alu.ufc.br",
+            password: "12345564s",
+         },
+         failOnStatusCode: false,
+      }).then((response) => {
+         const { error } = response.body;
+         expect(error.message).to.equal(
+            "Já existe um cadastro utilizando este endereço de e-mail."
+         );
+      });
+   });
+
+   it.only("retornar token do cadastro", () => {
+      cy.request({
+         method: "POST",
+         url: `https://amo-backend.onrender.com/registrar/`,
+         headers: {
+            "Content-Type": "application/json",
+         },
+         body: {
+            email: "12332145673246@alu.ufc.br",
+            password: "12345564s",
+         },
+         failOnStatusCode: false,
+      }).then((response) => {
+         if (response.status === 409) {
+            expect(response.body.error.message).to.equal(
+               "Já existe um cadastro utilizando este endereço de e-mail."
+            );
+         } else {
+            const { auth_token } = response.body.data;
+            // verifica se o token retornando é uma string e nao está vazia
+            expect(auth_token).to.be.a("string").and.not.be.empty;
+         }
       });
    });
 });
